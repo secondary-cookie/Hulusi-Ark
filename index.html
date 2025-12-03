@@ -10,102 +10,54 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;600;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     
     <style>
-      
         :root {
-          
             --deep-space: #020c1b;
-            --ocean-blue: #0a192f;
-            --starlight: #e6f1ff;
-            --glass-white: rgba(255, 255, 255, 0.08);
-            
-           
             --paper-white: #ffffff;
             --ink-black: #000000;
             --border-thick: 3px solid #000;
         }
-
-        body {
-            font-family: "Playfair Display", "Noto Serif SC", serif;
-            margin: 0;
-            overflow-x: hidden;
-            background-color: var(--deep-space);
-        }
-
-       
+        body { font-family: "Playfair Display", "Noto Serif SC", serif; margin: 0; background-color: var(--deep-space); }
         [v-cloak] { display: none; }
 
-       
-        .page-enter-active,
-        .page-leave-active {
-            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
-            position: absolute;
-            width: 100%;
-            top: 0; left: 0;
-        }
-        .page-enter-from { opacity: 0; transform: translateY(60px) scale(0.98); filter: blur(10px); }
-        .page-enter-to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-        .page-leave-from { opacity: 1; transform: scale(1); filter: blur(0); }
-        .page-leave-to { opacity: 0; transform: scale(1.05); filter: blur(20px); }
-
+        .page-enter-active, .page-leave-active { transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); position: absolute; width: 100%; top: 0; left: 0; }
+        .page-enter-from { opacity: 0; transform: translateY(40px); }
+        .page-enter-to { opacity: 1; transform: translateY(0); }
+        .page-leave-from { opacity: 1; transform: scale(1); }
+        .page-leave-to { opacity: 0; transform: scale(1.02); filter: blur(10px); }
         .transition-wrapper { position: relative; min-height: 100vh; width: 100%; overflow: hidden; }
 
-        
-        .home-bg {
-            background: radial-gradient(circle at 50% 0%, #112240 0%, #020c1b 100%);
-            color: var(--starlight);
-        }
-        .glass-card {
-            background: var(--glass-white);
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(12px);
-            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-        .glass-card:hover {
-            background: rgba(255,255,255,0.15);
-            transform: translateY(-8px);
-            border-color: rgba(255,255,255,0.5);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
+        .home-bg { background: radial-gradient(circle at 50% 0%, #0a192f 0%, #020c1b 100%); color: #e6f1ff; min-height: 100vh; }
+        .glass-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(5px); transition: all 0.4s ease; }
+        .glass-card:hover { background: rgba(255,255,255,0.15); transform: translateY(-5px); }
 
-       
         .archive-bg { background-color: var(--paper-white); color: var(--ink-black); min-height: 100vh; }
         .heavy-table { width: 100%; border-collapse: collapse; border: var(--border-thick); }
-        .heavy-table th { background: #000; color: #fff; padding: 18px; text-transform: uppercase; letter-spacing: 1px; font-weight: 900; }
+        .heavy-table th { background: #000; color: #fff; padding: 18px; text-transform: uppercase; font-weight: 900; text-align: left; }
         .heavy-table td { border-bottom: 1px solid #000; padding: 18px; font-weight: 600; }
 
-        
-        .blur-curtain {
-            position: fixed; inset: 0; background: rgba(2, 12, 27, 0.8);
-            backdrop-filter: blur(0px); pointer-events: none; z-index: 9999;
-            opacity: 0; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .blur-curtain.active { opacity: 1; backdrop-filter: blur(30px); pointer-events: auto; }
+        .blur-curtain { position: fixed; inset: 0; background: rgba(2, 12, 27, 0.95); pointer-events: none; z-index: 9999; opacity: 0; transition: all 0.5s ease; }
+        .blur-curtain.active { opacity: 1; pointer-events: auto; }
     </style>
 </head>
 <body>
 
 <div id="app" v-cloak>
-    
     <div :class="['blur-curtain', { 'active': isSwitchingLang }]"></div>
 
-    <nav class="fixed w-full z-50 transition-all duration-700 ease-in-out" :class="navClasses">
+    <nav class="fixed w-full z-50 transition-all duration-500 ease-in-out" :class="navClasses">
         <div class="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
             <div class="flex items-center gap-6">
                 <transition name="fade">
-                    <button v-if="viewState !== 'home'" @click="goHome" 
-                            class="group flex items-center gap-2 font-bold tracking-widest text-sm hover:opacity-60 transition-opacity">
-                        <span class="text-2xl">←</span> {{ t.back }}
+                    <button v-if="viewState !== 'home'" @click="goHome" class="group flex items-center gap-2 font-bold tracking-widest text-sm hover:opacity-60 transition-opacity">
+                        <span class="text-2xl font-black">←</span> {{ t.back }}
                     </button>
                 </transition>
-
                 <div @click="goHome" class="flex flex-col cursor-pointer group">
-                    <span class="text-xs font-bold tracking-[0.3em] uppercase opacity-70 group-hover:opacity-100 transition-opacity">Global Archive</span>
+                    <span class="text-xs font-bold tracking-[0.3em] uppercase opacity-70">Global Archive</span>
                     <span class="text-2xl font-black tracking-tighter leading-none">WORLD HULUSI ARK</span>
                 </div>
             </div>
-
-            <button @click="switchLang" 
-                    class="border px-4 py-2 text-xs font-bold tracking-widest hover:bg-white hover:text-black transition-colors duration-300"
+            <button @click="switchLang" class="border px-4 py-2 text-xs font-bold tracking-widest hover:bg-white hover:text-black transition-colors"
                     :class="viewState === 'home' ? 'border-white text-white' : 'border-black text-black'">
                 {{ lang === 'zh' ? 'EN' : '中' }}
             </button>
@@ -115,17 +67,13 @@
     <div class="transition-wrapper">
         <transition name="page">
             
-            <div v-if="viewState === 'home'" key="home" class="home-bg min-h-screen flex flex-col items-center justify-center pt-20 px-6">
-                
-                <div class="text-center max-w-5xl mb-16">
-                    <h1 class="text-6xl md:text-8xl font-black mb-8 tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400">
-                        {{ t.hero_title }}
-                    </h1>
-                    
+            <div v-if="viewState === 'home'" key="home" class="home-bg flex flex-col items-center justify-center pt-20 px-6">
+                <div class="text-center max-w-5xl mb-16 mt-10">
+                    <h1 class="text-6xl md:text-8xl font-black mb-8 tracking-tighter">{{ t.hero_title }}</h1>
                     <div class="text-left grid grid-cols-1 md:grid-cols-12 gap-8 border-t border-gray-700 pt-8 mt-8">
-                        <div class="md:col-span-4">
+                        <div class="md:col-span-4 border-r border-gray-700 pr-4">
                             <h3 class="text-xl font-bold text-white mb-2">{{ t.hist_label }}</h3>
-                            <div class="h-1 w-12 bg-blue-500"></div>
+                            <div class="h-1 w-12 bg-white"></div>
                         </div>
                         <div class="md:col-span-8 text-gray-300 text-lg leading-relaxed font-light">
                             <p class="mb-4">{{ t.hist_content_1 }}</p>
@@ -133,31 +81,19 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="w-full max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-6 pb-20">
                     <div @click="enterSection('classics')" class="glass-card p-10 cursor-pointer flex flex-col justify-between h-80 group">
-                        <div class="text-5xl mb-4 opacity-50 group-hover:opacity-100 transition-opacity font-mono">01.</div>
-                        <div>
-                            <h2 class="text-3xl font-bold text-white mb-2">{{ t.nav_classics }}</h2>
-                            <p class="text-sm text-gray-400 font-bold tracking-widest uppercase">{{ t.sub_classics }}</p>
-                        </div>
+                        <div class="text-5xl mb-4 opacity-30 font-mono">01</div>
+                        <div><h2 class="text-3xl font-bold text-white mb-2">{{ t.nav_classics }}</h2><p class="text-sm text-gray-400 font-bold tracking-widest uppercase">{{ t.sub_classics }}</p></div>
                     </div>
-
                     <div @click="enterSection('folk')" class="glass-card p-10 cursor-pointer flex flex-col justify-between h-80 group">
-                        <div class="text-5xl mb-4 opacity-50 group-hover:opacity-100 transition-opacity font-mono">02.</div>
-                        <div>
-                            <h2 class="text-3xl font-bold text-white mb-2">{{ t.nav_folk }}</h2>
-                            <p class="text-sm text-gray-400 font-bold tracking-widest uppercase">{{ t.sub_folk }}</p>
-                        </div>
+                        <div class="text-5xl mb-4 opacity-30 font-mono">02</div>
+                        <div><h2 class="text-3xl font-bold text-white mb-2">{{ t.nav_folk }}</h2><p class="text-sm text-gray-400 font-bold tracking-widest uppercase">{{ t.sub_folk }}</p></div>
                     </div>
-
-                    <div class="glass-card p-10 flex flex-col justify-between h-80 opacity-50 relative border-dashed cursor-not-allowed">
-                        <div class="absolute top-6 right-6 border border-white/30 px-2 py-1 text-xs font-bold tracking-wider text-yellow-400">MAINTENANCE</div>
-                        <div class="text-5xl mb-4 opacity-30 font-mono">03.</div>
-                        <div>
-                            <h2 class="text-3xl font-bold text-gray-400 mb-2">{{ t.nav_ai }}</h2>
-                            <p class="text-sm text-gray-500 font-bold tracking-widest uppercase">{{ t.sub_ai }}</p>
-                        </div>
+                    <div class="glass-card p-10 opacity-50 flex flex-col justify-between h-80 relative border-dashed cursor-not-allowed">
+                        <div class="absolute top-6 right-6 border border-white/30 px-2 py-1 text-xs font-bold text-yellow-400">MAINTENANCE</div>
+                        <div class="text-5xl mb-4 opacity-20 font-mono">03</div>
+                        <div><h2 class="text-3xl font-bold text-gray-400 mb-2">{{ t.nav_ai }}</h2><p class="text-sm text-gray-500 font-bold tracking-widest uppercase">{{ t.sub_ai }}</p></div>
                     </div>
                 </div>
             </div>
@@ -165,45 +101,19 @@
             <div v-else-if="viewState === 'classics'" key="classics" class="archive-bg pt-32 px-6 pb-20">
                 <div class="max-w-6xl mx-auto">
                     <div class="flex justify-between items-end mb-12 border-b-4 border-black pb-6">
-                        <div>
-                            <h1 class="text-6xl font-black mb-2">{{ t.nav_classics }}</h1>
-                            <p class="text-gray-500 font-bold uppercase tracking-widest">{{ t.desc_classics }}</p>
-                        </div>
-                        <button @click="showUpload = true" class="bg-black text-white px-8 py-4 font-bold hover:bg-gray-800 transition uppercase tracking-wider">
-                            + {{ t.btn_upload }}
-                        </button>
+                        <div><h1 class="text-6xl font-black mb-2">{{ t.nav_classics }}</h1><p class="text-gray-500 font-bold uppercase tracking-widest">{{ t.desc_classics }}</p></div>
+                        <button @click="showUpload = true" class="bg-black text-white px-8 py-4 font-bold hover:bg-gray-800 transition uppercase tracking-wider">+ {{ t.btn_upload }}</button>
                     </div>
-
-                    <div v-if="loading" class="text-center py-20 text-gray-400 italic">
-                        Loading Archive Data...
-                    </div>
-
+                    <div v-if="loading" class="text-center py-20 text-gray-400 italic">Connecting to Database...</div>
                     <table v-else class="heavy-table">
-                        <thead>
-                            <tr>
-                                <th class="w-1/2">{{ t.col_title }}</th>
-                                <th class="w-1/4">{{ t.col_info }}</th>
-                                <th class="w-1/4 text-right">{{ t.col_action }}</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th class="w-1/2">{{ t.col_title }}</th><th class="w-1/4">{{ t.col_info }}</th><th class="w-1/4 text-right">{{ t.col_action }}</th></tr></thead>
                         <tbody>
                             <tr v-for="item in classicsList" :key="item.id" class="hover:bg-gray-50 transition">
                                 <td class="font-bold text-lg">{{ item.title }}</td>
-                                <td>
-                                    <div class="text-sm text-gray-600">{{ item.artist }}</div>
-                                    <span class="bg-black text-white px-2 py-0.5 text-xs">PDF</span>
-                                </td>
-                                <td class="text-right">
-                                    <a :href="item.file_url" target="_blank" class="border-2 border-black px-4 py-1 font-bold text-xs hover:bg-black hover:text-white transition uppercase">
-                                        {{ t.btn_view }}
-                                    </a>
-                                </td>
+                                <td><div class="text-sm text-gray-600">{{ item.artist }}</div><span class="bg-black text-white px-2 py-0.5 text-xs">PDF</span></td>
+                                <td class="text-right"><a :href="item.file_url" target="_blank" class="border-2 border-black px-4 py-1 font-bold text-xs hover:bg-black hover:text-white transition uppercase">{{ t.btn_view }}</a></td>
                             </tr>
-                            <tr v-if="classicsList.length === 0">
-                                <td colspan="3" class="text-center py-24 text-gray-400 italic">
-                                    {{ t.empty_list }}
-                                </td>
-                            </tr>
+                            <tr v-if="classicsList.length === 0"><td colspan="3" class="text-center py-24 text-gray-400 italic">{{ t.empty_list }}</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -212,50 +122,23 @@
             <div v-else-if="viewState === 'folk'" key="folk" class="archive-bg pt-32 px-6 pb-20">
                 <div class="max-w-6xl mx-auto">
                     <div class="flex justify-between items-end mb-12 border-b-4 border-black pb-6">
-                        <div>
-                            <h1 class="text-6xl font-black mb-2">{{ t.nav_folk }}</h1>
-                            <p class="text-gray-500 font-bold uppercase tracking-widest">{{ t.desc_folk }}</p>
-                        </div>
-                        <button @click="showUpload = true" class="bg-black text-white px-8 py-4 font-bold hover:bg-gray-800 transition uppercase tracking-wider">
-                            + {{ t.btn_upload }}
-                        </button>
+                        <div><h1 class="text-6xl font-black mb-2">{{ t.nav_folk }}</h1><p class="text-gray-500 font-bold uppercase tracking-widest">{{ t.desc_folk }}</p></div>
+                        <button @click="showUpload = true" class="bg-black text-white px-8 py-4 font-bold hover:bg-gray-800 transition uppercase tracking-wider">+ {{ t.btn_upload }}</button>
                     </div>
-
-                    <div v-if="loading" class="text-center py-20 text-gray-400 italic">
-                        Loading Archive Data...
-                    </div>
-
+                    <div v-if="loading" class="text-center py-20 text-gray-400 italic">Connecting to Database...</div>
                     <table v-else class="heavy-table">
-                        <thead>
-                            <tr>
-                                <th class="w-1/2">{{ t.col_title }}</th>
-                                <th class="w-1/4">{{ t.col_source }}</th>
-                                <th class="w-1/4 text-right">{{ t.col_action }}</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th class="w-1/2">{{ t.col_title }}</th><th class="w-1/4">{{ t.col_source }}</th><th class="w-1/4 text-right">{{ t.col_action }}</th></tr></thead>
                         <tbody>
-                             <tr v-for="item in folkList" :key="item.id" class="hover:bg-gray-50 transition">
+                            <tr v-for="item in folkList" :key="item.id" class="hover:bg-gray-50 transition">
                                 <td class="font-bold text-lg">{{ item.title }}</td>
-                                <td>
-                                    <div class="text-sm text-gray-600">{{ item.artist }}</div>
-                                    <span class="bg-gray-200 text-black px-2 py-0.5 text-xs">RAW</span>
-                                </td>
-                                <td class="text-right">
-                                    <a :href="item.file_url" target="_blank" class="border-2 border-black px-4 py-1 font-bold text-xs hover:bg-black hover:text-white transition uppercase">
-                                        {{ t.btn_view }}
-                                    </a>
-                                </td>
+                                <td><div class="text-sm text-gray-600">{{ item.artist }}</div><span class="bg-gray-200 text-black px-2 py-0.5 text-xs">RAW</span></td>
+                                <td class="text-right"><a :href="item.file_url" target="_blank" class="border-2 border-black px-4 py-1 font-bold text-xs hover:bg-black hover:text-white transition uppercase">{{ t.btn_view }}</a></td>
                             </tr>
-                            <tr v-if="folkList.length === 0">
-                                <td colspan="3" class="text-center py-24 text-gray-400 italic">
-                                    {{ t.empty_list }}
-                                </td>
-                            </tr>
+                            <tr v-if="folkList.length === 0"><td colspan="3" class="text-center py-24 text-gray-400 italic">{{ t.empty_list }}</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-
         </transition>
     </div>
 
@@ -263,97 +146,48 @@
         <div class="bg-white w-full max-w-lg p-10 relative">
             <button @click="showUpload = false" class="absolute top-4 right-4 text-4xl hover:text-red-600 font-bold">×</button>
             <h2 class="text-3xl font-black mb-8 border-b-4 border-black pb-4 uppercase">{{ t.upload_title }}</h2>
-            
             <div class="space-y-6">
-                <div>
-                    <label class="block font-bold mb-2 uppercase text-sm">Title</label>
-                    <input v-model="uploadForm.title" type="text" class="w-full border-2 border-black p-4 font-serif text-lg outline-none focus:bg-gray-100">
-                </div>
-                <div>
-                    <label class="block font-bold mb-2 uppercase text-sm">{{ viewState === 'folk' ? t.col_source : t.col_info }}</label>
-                    <input v-model="uploadForm.artist" type="text" class="w-full border-2 border-black p-4 font-serif text-lg outline-none focus:bg-gray-100">
-                </div>
-                <div>
-                    <label class="block font-bold mb-2 uppercase text-sm">File (PDF / Image)</label>
-                    <div class="border-2 border-dashed border-black p-10 text-center cursor-pointer hover:bg-gray-100 transition relative">
-                        <input type="file" @change="handleFileSelect" accept=".pdf,.png,.jpg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                        <span v-if="!uploadForm.file" class="font-bold text-gray-500">CLICK TO UPLOAD</span>
-                        <span v-else class="font-bold text-blue-800">{{ uploadForm.file.name }}</span>
-                    </div>
-                </div>
-
-                <div v-if="uploadStatus" class="text-center font-bold" :class="uploadStatus.includes('Error') ? 'text-red-600' : 'text-green-600'">
-                    {{ uploadStatus }}
-                </div>
-
-                <button @click="submitUpload" :disabled="isUploading" class="w-full bg-black text-white py-5 font-bold text-xl hover:bg-gray-800 transition uppercase">
-                    {{ isUploading ? 'UPLOADING...' : t.btn_submit }}
-                </button>
+                <div><label class="block font-bold mb-2 uppercase text-sm">Title</label><input v-model="uploadForm.title" type="text" class="w-full border-2 border-black p-4 font-serif text-lg outline-none focus:bg-gray-100"></div>
+                <div><label class="block font-bold mb-2 uppercase text-sm">{{ viewState === 'folk' ? t.col_source : t.col_info }}</label><input v-model="uploadForm.artist" type="text" class="w-full border-2 border-black p-4 font-serif text-lg outline-none focus:bg-gray-100"></div>
+                <div><label class="block font-bold mb-2 uppercase text-sm">File</label><div class="border-2 border-dashed border-black p-12 text-center cursor-pointer hover:bg-gray-100 transition relative"><input type="file" @change="handleFileSelect" accept=".pdf,.png,.jpg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"><span v-if="!uploadForm.file" class="font-bold text-gray-500 block mb-2">CLICK TO UPLOAD</span><span v-else class="font-bold text-blue-800">{{ uploadForm.file.name }}</span></div></div>
+                <div v-if="uploadStatus" class="text-center font-bold" :class="uploadStatus.includes('Error') ? 'text-red-600' : 'text-green-600'">{{ uploadStatus }}</div>
+                <button @click="submitUpload" :disabled="isUploading" class="w-full bg-black text-white py-5 font-bold text-xl hover:bg-gray-800 transition uppercase tracking-wider">{{ isUploading ? 'UPLOADING...' : t.btn_submit }}</button>
             </div>
         </div>
     </div>
-
 </div>
 
 <script>
     const { createApp, ref, computed } = Vue;
     const { createClient } = supabase;
 
-    
     const supabaseUrl = 'https://culzdcfaqvzytzpbisuc.supabase.co'
-    
-    const supabaseKey = 'sb_publishable_5DfMV0no-9lfYznNhl9AFA_734SnaV6'
-    
-    
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1bHpkY2ZhcXZ6eXR6cGJpc3VjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NTU2NzMsImV4cCI6MjA4MDMzMTY3M30.Z8anjHZXMw2hOJ8LSQlv8HeWE6YTryytJFqm9JcfmH0'
     const db = createClient(supabaseUrl, supabaseKey)
 
     const translations = {
         zh: {
-            hero_title: "世界葫芦丝数字方舟",
-            hist_label: "历史溯源与声学",
-            hist_content_1: "葫芦丝（Hulusi）起源于中国西南（梁河县等地），是东方“水文化”的典型代表。不同于普通笛子，它拥有独特的簧管结构。",
-            hist_content_2: "其天然葫芦作为共鸣箱，形成亥姆霍兹共振（Helmholtz Resonance），过滤高频泛音，创造出丝绸般圆润的音色。",
-            nav_classics: "经典曲目体系",
-            sub_classics: "存世乐谱档案",
-            nav_folk: "民间小调档案",
-            sub_folk: "口述历史 / 田野记录",
-            nav_ai: "AI 修复工坊",
-            sub_ai: "系统更新维护中...",
-            back: "返回首页",
-            desc_classics: "存世经典乐谱档案 (PDF)",
-            desc_folk: "未被修饰的原始记录与口述历史",
-            col_title: "档案标题",
-            col_info: "艺术家",
-            col_action: "操作",
-            col_source: "采集来源",
-            btn_upload: "上传档案",
-            btn_view: "查看详情",
-            btn_submit: "确认入库",
-            upload_title: "贡献新档案",
+            hero_title: "世界葫芦丝数字方舟", hist_label: "历史溯源与声学",
+            hist_content_1: "葫芦丝 (Hulusi)，又称“葫芦萧”，是起源于中国西南地区的民族吹管乐器。它以其独特的外形、柔美迷人的音色和浓郁的民族风情而闻名，被誉为“东方萨克斯”",
+            hist_content_2: "天然葫芦形成亥姆霍兹共振，过滤高频泛音，赋予乐器丝绸般圆润音色。",
+            nav_classics: "经典曲目体系", sub_classics: "存世乐谱档案",
+            nav_folk: "民间小调档案", sub_folk: "口述历史 / 山野记录",
+            nav_ai: "AI 修复工坊", sub_ai: "系统更新维护中...",
+            back: "返回首页", desc_classics: "存世经典乐谱档案 (PDF)", desc_folk: "未被修饰的原始记录与口述历史",
+            col_title: "档案标题", col_info: "艺术家", col_action: "操作", col_source: "采集来源",
+            btn_upload: "上传档案", btn_view: "查看详情", btn_submit: "确认入库", upload_title: "贡献新档案",
             empty_list: "当前暂无档案。请点击右上角按钮上传。"
         },
         en: {
-            hero_title: "WORLD HULUSI DIGITAL ARK",
-            hist_label: "History & Acoustics",
-            hist_content_1: "Originating from Dehong, China, the Hulusi is a unique free-reed instrument native to Lianghe County. It embodies the memory of the Dai 'Water Culture' and Jingpo 'Mountain Culture'.",
-            hist_content_2: "It features a natural gourd acting as a Helmholtz Resonator. This acoustic structure filters high frequencies, creating its signature silk-like, mellow timbre.",
-            nav_classics: "Classic Repertoire",
-            sub_classics: "Existing Scores",
-            nav_folk: "Folk Tunes",
-            sub_folk: "Oral History / Field Rec",
-            nav_ai: "AI Restoration",
-            sub_ai: "System Updating...",
-            back: "BACK TO HOME",
-            desc_classics: "Verified Standard Scores (PDF)",
-            desc_folk: "Unprocessed Raw Records",
-            col_title: "Title",
-            col_info: "Artist",
-            col_action: "Action",
-            col_source: "Source",
-            btn_upload: "Upload Record",
-            btn_view: "View Record",
-            btn_submit: "Submit to Archive",
-            upload_title: "Contribute Record",
+            hero_title: "WORLD HULUSI DIGITAL ARK", hist_label: "History & Acoustics",
+            hist_content_1: "The Hulusi (pronounced hoo-loo-sue), often referred to in English as the Cucurbit Flute or Gourd Flute, is a free-reed wind instrument originating from Southwest China. Known for its unique shape, soft tone, and rich ethnic character, it is frequently praised as the “Oriental Saxophone”.",
+            hist_content_2: "Features a natural gourd acting as a Helmholtz Resonator, creating its signature silk-like, mellow timbre.",
+            nav_classics: "Classic Repertoire", sub_classics: "Existing Scores",
+            nav_folk: "Folk Tunes", sub_folk: "Oral History / Field Rec",
+            nav_ai: "AI Restoration", sub_ai: "System Updating...",
+            back: "BACK TO HOME", desc_classics: "Verified Standard Scores (PDF)", desc_folk: "Unprocessed Raw Records",
+            col_title: "Title", col_info: "Artist", col_action: "Action", col_source: "Source",
+            btn_upload: "Upload Record", btn_view: "View Record", btn_submit: "Submit to Archive", upload_title: "Contribute Record",
             empty_list: "No records found. Click Upload to populate."
         }
     };
@@ -364,8 +198,6 @@
             const lang = ref('zh');
             const showUpload = ref(false);
             const isSwitchingLang = ref(false);
-
-           
             const loading = ref(false);
             const classicsList = ref([]);
             const folkList = ref([]);
@@ -374,40 +206,20 @@
             const uploadStatus = ref('');
 
             const t = computed(() => translations[lang.value]);
-
-            const navClasses = computed(() => {
-                return viewState.value === 'home' 
-                    ? 'bg-transparent text-white pt-4' 
-                    : 'bg-white text-black border-b border-black py-0';
-            });
+            const navClasses = computed(() => viewState.value === 'home' ? 'bg-transparent text-white pt-4' : 'bg-white text-black border-b border-black py-0');
 
             const goHome = () => viewState.value = 'home';
-            
             const switchLang = () => {
                 if (isSwitchingLang.value) return;
                 isSwitchingLang.value = true;
-                setTimeout(() => {
-                    lang.value = lang.value === 'zh' ? 'en' : 'zh';
-                    setTimeout(() => isSwitchingLang.value = false, 600);
-                }, 400);
+                setTimeout(() => { lang.value = lang.value === 'zh' ? 'en' : 'zh'; setTimeout(() => isSwitchingLang.value = false, 500); }, 300);
             };
 
-       
-            const enterSection = (sec) => {
-                viewState.value = sec;
-                fetchData(sec); 
-            };
+            const enterSection = (sec) => { viewState.value = sec; fetchData(sec); };
 
-            
             const fetchData = async (category) => {
                 loading.value = true;
-                const { data, error } = await db
-                    .from('scores')
-                    .select('*')
-                    .eq('category', category)
-                    .eq('status', 'approved')
-                    .order('created_at', { ascending: false });
-
+                const { data, error } = await db.from('scores').select('*').eq('category', category).eq('status', 'approved').order('created_at', { ascending: false });
                 if (data) {
                     if (category === 'classics') classicsList.value = data;
                     if (category === 'folk') folkList.value = data;
@@ -415,75 +227,37 @@
                 loading.value = false;
             };
 
-            
-            const handleFileSelect = (e) => {
-                uploadForm.value.file = e.target.files[0];
-            };
+            const handleFileSelect = (e) => uploadForm.value.file = e.target.files[0];
 
             const submitUpload = async () => {
-                if (!uploadForm.value.file || !uploadForm.value.title) {
-                    uploadStatus.value = "Error: Missing Info";
-                    return;
-                }
+                if (!uploadForm.value.file || !uploadForm.value.title) { uploadStatus.value = "Error: Missing Info"; return; }
                 isUploading.value = true;
                 uploadStatus.value = "Uploading...";
-
                 const file = uploadForm.value.file;
-               
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${Date.now()}.${fileExt}`;
+                const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
                 const category = viewState.value;
 
                 try {
-                    
-                    const { data: fileData, error: fileError } = await db.storage
-                        .from('score_files')
-                        .upload(fileName, file);
-
+                    const { data: fileData, error: fileError } = await db.storage.from('score_files').upload(fileName, file);
                     if (fileError) throw fileError;
-
-                    
-                    const { data: urlData } = db.storage
-                        .from('score_files')
-                        .getPublicUrl(fileName);
-
-                    
-                    const { error: dbError } = await db
-                        .from('scores')
-                        .insert([{
-                            title: uploadForm.value.title,
-                            artist: uploadForm.value.artist,
-                            category: category,
-                            file_url: urlData.publicUrl
-                        }]);
-
+                    const { data: urlData } = db.storage.from('score_files').getPublicUrl(fileName);
+                    const { error: dbError } = await db.from('scores').insert([{
+                        title: uploadForm.value.title, artist: uploadForm.value.artist, category: category, 
+                        file_url: urlData.publicUrl, status: 'pending' 
+                    }]);
                     if (dbError) throw dbError;
 
-                    uploadStatus.value = "Success!";
-                    setTimeout(() => {
-                        showUpload.value = false;
-                        uploadStatus.value = '';
-                        uploadForm.value = { title: '', artist: '', file: null };
-                        fetchData(category); // 刷新当前列表
-                    }, 1000);
-
+                    uploadStatus.value = lang.value === 'zh' ? "等待审核 (Waiting for Approval)" : "Waiting for Approval";
+                    setTimeout(() => { showUpload.value = false; uploadStatus.value = ''; uploadForm.value = { title: '', artist: '', file: null }; }, 2000);
                 } catch (err) {
                     console.error(err);
-                    uploadStatus.value = "Upload Failed (Check API Key or Network)";
-                } finally {
-                    isUploading.value = false;
-                }
+                    uploadStatus.value = "Upload Failed: " + err.message;
+                } finally { isUploading.value = false; }
             };
 
-            return { 
-                viewState, lang, t, showUpload, isSwitchingLang, navClasses, 
-                goHome, switchLang, enterSection,
-                classicsList, folkList, loading,
-                uploadForm, isUploading, uploadStatus, handleFileSelect, submitUpload
-            };
+            return { viewState, lang, t, showUpload, isSwitchingLang, navClasses, goHome, switchLang, enterSection, classicsList, folkList, loading, uploadForm, isUploading, uploadStatus, handleFileSelect, submitUpload };
         }
     }).mount('#app');
 </script>
-
 </body>
 </html>
