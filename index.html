@@ -16,10 +16,42 @@
             --ink-black: #000000;
             --border-thick: 3px solid #000;
         }
-        body { font-family: "Playfair Display", "Noto Serif SC", serif; margin: 0; background-color: var(--deep-space); }
+        body { font-family: "Playfair Display", "Noto Serif SC", serif; margin: 0; background-color: var(--deep-space); overflow-x: hidden;}
         [v-cloak] { display: none; }
 
+        /* --- 核心动画：文字淡入淡出类 --- */
+        .content-transition {
+            transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out, filter 0.6s ease;
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+        }
         
+        /* 当语言切换时，文字的状态：透明、下沉、模糊 */
+        .content-hidden {
+            opacity: 0;
+            transform: translateY(15px); /* 文字轻微下沉 */
+            filter: blur(8px); /* 文字本身也变模糊 */
+        }
+
+        /* --- 毛玻璃遮罩 --- */
+        .blur-curtain { 
+            position: fixed; inset: 0; 
+            background: rgba(2, 12, 27, 0.2); /* 这里的背景色要淡，主要靠模糊 */
+            backdrop-filter: blur(0px); 
+            -webkit-backdrop-filter: blur(0px);
+            pointer-events: none; z-index: 9999; opacity: 0; 
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); /* 慢速曲线 */
+        }
+        .blur-curtain.active { 
+            opacity: 1; 
+            background: rgba(2, 12, 27, 0.6);
+            backdrop-filter: blur(30px); /* 深度模糊 */
+            -webkit-backdrop-filter: blur(30px);
+            pointer-events: auto; 
+        }
+
+        /* 其他原有样式保持不变 */
         .page-enter-active, .page-leave-active { transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); position: absolute; width: 100%; top: 0; left: 0; }
         .page-enter-from { opacity: 0; transform: translateY(40px); }
         .page-enter-to { opacity: 1; transform: translateY(0); }
@@ -28,146 +60,118 @@
         .transition-wrapper { position: relative; min-height: 100vh; width: 100%; overflow: hidden; }
 
         .home-bg { background: radial-gradient(circle at 50% 0%, #0a192f 0%, #020c1b 100%); color: #e6f1ff; min-height: 100vh; }
-        
-        .glass-card { 
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255,255,255,0.2); 
-            backdrop-filter: blur(15px); 
-            -webkit-backdrop-filter: blur(15px); 
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            transition: all 0.4s ease; 
-        }
-        .glass-card:hover { 
-            background: rgba(255,255,255,0.15); 
-            transform: translateY(-8px); 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            border-color: rgba(255,255,255,0.6);
-        }
+        .glass-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(5px); transition: all 0.4s ease; }
+        .glass-card:hover { background: rgba(255,255,255,0.15); transform: translateY(-5px); }
 
-        
         .archive-bg { background-color: var(--paper-white); color: var(--ink-black); min-height: 100vh; }
         .heavy-table { width: 100%; border-collapse: collapse; border: var(--border-thick); }
         .heavy-table th { background: #000; color: #fff; padding: 18px; text-transform: uppercase; font-weight: 900; text-align: left; }
         .heavy-table td { border-bottom: 1px solid #000; padding: 18px; font-weight: 600; }
-
-        
-        .blur-curtain { 
-            position: fixed; inset: 0; 
-            background: rgba(2, 12, 27, 0.4); 
-            backdrop-filter: blur(0px); 
-            -webkit-backdrop-filter: blur(0px);
-            pointer-events: none; z-index: 9999; opacity: 0; 
-            transition: all 0.6s ease; 
-        }
-        .blur-curtain.active { 
-            opacity: 1; 
-            backdrop-filter: blur(25px); 
-            -webkit-backdrop-filter: blur(25px);
-            pointer-events: auto; 
-        }
     </style>
 </head>
 <body>
 
 <div id="app" v-cloak>
-    <div :class="['blur-curtain', { 'active': isSwitchingLang }]"></div>
+    <div :class="['blur-curtain', { 'active': isBlurActive }]"></div>
 
-    <nav class="fixed w-full z-50 transition-all duration-500 ease-in-out" :class="navClasses">
-        <div class="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
-            <div class="flex items-center gap-6">
-                <transition name="fade">
+    <div :class="['content-transition', { 'content-hidden': isTextHidden }]">
+        
+        <nav class="fixed w-full z-50 transition-all duration-500 ease-in-out" :class="navClasses">
+            <div class="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
+                <div class="flex items-center gap-6">
                     <button v-if="viewState !== 'home'" @click="goHome" class="group flex items-center gap-2 font-bold tracking-widest text-sm hover:opacity-60 transition-opacity">
                         <span class="text-2xl font-black">←</span> {{ t.back }}
                     </button>
-                </transition>
-                <div @click="goHome" class="flex flex-col cursor-pointer group">
-                    <span class="text-xs font-bold tracking-[0.3em] uppercase opacity-70">Global Archive</span>
-                    <span class="text-2xl font-black tracking-tighter leading-none">WORLD HULUSI ARK</span>
+                    <div @click="goHome" class="flex flex-col cursor-pointer group">
+                        <span class="text-xs font-bold tracking-[0.3em] uppercase opacity-70">Global Archive</span>
+                        <span class="text-2xl font-black tracking-tighter leading-none">WORLD HULUSI ARK</span>
+                    </div>
                 </div>
+                <button @click="switchLang" :disabled="isBlurActive" 
+                        class="border px-4 py-2 text-xs font-bold tracking-widest hover:bg-white hover:text-black transition-colors cursor-pointer disabled:cursor-not-allowed"
+                        :class="viewState === 'home' ? 'border-white text-white' : 'border-black text-black'">
+                    {{ lang === 'zh' ? 'EN' : '中' }}
+                </button>
             </div>
-            <button @click="switchLang" class="border px-4 py-2 text-xs font-bold tracking-widest hover:bg-white hover:text-black transition-colors"
-                    :class="viewState === 'home' ? 'border-white text-white' : 'border-black text-black'">
-                {{ lang === 'zh' ? 'EN' : '中' }}
-            </button>
+        </nav>
+
+        <div class="transition-wrapper">
+            <transition name="page">
+                
+                <div v-if="viewState === 'home'" key="home" class="home-bg flex flex-col items-center justify-center pt-20 px-6">
+                    <div class="text-center max-w-5xl mb-16 mt-10">
+                        <h1 class="text-6xl md:text-8xl font-black mb-8 tracking-tighter">{{ t.hero_title }}</h1>
+                        <div class="text-left grid grid-cols-1 md:grid-cols-12 gap-8 border-t border-gray-700 pt-8 mt-8">
+                            <div class="md:col-span-4 border-r border-gray-700 pr-4">
+                                <h3 class="text-xl font-bold text-white mb-2">{{ t.hist_label }}</h3>
+                                <div class="h-1 w-12 bg-white"></div>
+                            </div>
+                            <div class="md:col-span-8 text-gray-300 text-lg leading-relaxed font-light">
+                                <p class="mb-4">{{ t.hist_content_1 }}</p>
+                                <p>{{ t.hist_content_2 }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-6 pb-20">
+                        <div @click="enterSection('classics')" class="glass-card p-10 cursor-pointer flex flex-col justify-between h-80 group">
+                            <div class="text-5xl mb-4 opacity-30 font-mono">01</div>
+                            <div><h2 class="text-3xl font-bold text-white mb-2">{{ t.nav_classics }}</h2><p class="text-sm text-gray-400 font-bold tracking-widest uppercase">{{ t.sub_classics }}</p></div>
+                        </div>
+                        <div @click="enterSection('folk')" class="glass-card p-10 cursor-pointer flex flex-col justify-between h-80 group">
+                            <div class="text-5xl mb-4 opacity-30 font-mono">02</div>
+                            <div><h2 class="text-3xl font-bold text-white mb-2">{{ t.nav_folk }}</h2><p class="text-sm text-gray-400 font-bold tracking-widest uppercase">{{ t.sub_folk }}</p></div>
+                        </div>
+                        <div class="glass-card p-10 opacity-50 flex flex-col justify-between h-80 relative border-dashed cursor-not-allowed">
+                            <div class="absolute top-6 right-6 border border-white/30 px-2 py-1 text-xs font-bold text-yellow-400">MAINTENANCE</div>
+                            <div class="text-5xl mb-4 opacity-20 font-mono">03</div>
+                            <div><h2 class="text-3xl font-bold text-gray-400 mb-2">{{ t.nav_ai }}</h2><p class="text-sm text-gray-500 font-bold tracking-widest uppercase">{{ t.sub_ai }}</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else-if="viewState === 'classics'" key="classics" class="archive-bg pt-32 px-6 pb-20">
+                    <div class="max-w-6xl mx-auto">
+                        <div class="flex justify-between items-end mb-12 border-b-4 border-black pb-6">
+                            <div><h1 class="text-6xl font-black mb-2">{{ t.nav_classics }}</h1><p class="text-gray-500 font-bold uppercase tracking-widest">{{ t.desc_classics }}</p></div>
+                            <button @click="showUpload = true" class="bg-black text-white px-8 py-4 font-bold hover:bg-gray-800 transition uppercase tracking-wider">+ {{ t.btn_upload }}</button>
+                        </div>
+                        <div v-if="loading" class="text-center py-20 text-gray-400 italic">Connecting to Database...</div>
+                        <table v-else class="heavy-table">
+                            <thead><tr><th class="w-1/2">{{ t.col_title }}</th><th class="w-1/4">{{ t.col_info }}</th><th class="w-1/4 text-right">{{ t.col_action }}</th></tr></thead>
+                            <tbody>
+                                <tr v-for="item in classicsList" :key="item.id" class="hover:bg-gray-50 transition">
+                                    <td class="font-bold text-lg">{{ item.title }}</td>
+                                    <td><div class="text-sm text-gray-600">{{ item.artist }}</div><span class="bg-black text-white px-2 py-0.5 text-xs">PDF</span></td>
+                                    <td class="text-right"><a :href="item.file_url" target="_blank" class="border-2 border-black px-4 py-1 font-bold text-xs hover:bg-black hover:text-white transition uppercase">{{ t.btn_view }}</a></td>
+                                </tr>
+                                <tr v-if="classicsList.length === 0"><td colspan="3" class="text-center py-24 text-gray-400 italic">{{ t.empty_list }}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div v-else-if="viewState === 'folk'" key="folk" class="archive-bg pt-32 px-6 pb-20">
+                    <div class="max-w-6xl mx-auto">
+                        <div class="flex justify-between items-end mb-12 border-b-4 border-black pb-6">
+                            <div><h1 class="text-6xl font-black mb-2">{{ t.nav_folk }}</h1><p class="text-gray-500 font-bold uppercase tracking-widest">{{ t.desc_folk }}</p></div>
+                            <button @click="showUpload = true" class="bg-black text-white px-8 py-4 font-bold hover:bg-gray-800 transition uppercase tracking-wider">+ {{ t.btn_upload }}</button>
+                        </div>
+                        <div v-if="loading" class="text-center py-20 text-gray-400 italic">Connecting to Database...</div>
+                        <table v-else class="heavy-table">
+                            <thead><tr><th class="w-1/2">{{ t.col_title }}</th><th class="w-1/4">{{ t.col_source }}</th><th class="w-1/4 text-right">{{ t.col_action }}</th></tr></thead>
+                            <tbody>
+                                <tr v-for="item in folkList" :key="item.id" class="hover:bg-gray-50 transition">
+                                    <td class="font-bold text-lg">{{ item.title }}</td>
+                                    <td><div class="text-sm text-gray-600">{{ item.artist }}</div><span class="bg-gray-200 text-black px-2 py-0.5 text-xs">RAW</span></td>
+                                    <td class="text-right"><a :href="item.file_url" target="_blank" class="border-2 border-black px-4 py-1 font-bold text-xs hover:bg-black hover:text-white transition uppercase">{{ t.btn_view }}</a></td>
+                                </tr>
+                                <tr v-if="folkList.length === 0"><td colspan="3" class="text-center py-24 text-gray-400 italic">{{ t.empty_list }}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </transition>
         </div>
-    </nav>
-
-    <div class="transition-wrapper">
-        <transition name="page">
-            
-            <div v-if="viewState === 'home'" key="home" class="home-bg flex flex-col items-center justify-center pt-20 px-6">
-                <div class="text-center max-w-5xl mb-16 mt-10">
-                    <h1 class="text-6xl md:text-8xl font-black mb-8 tracking-tighter">{{ t.hero_title }}</h1>
-                    <div class="text-left grid grid-cols-1 md:grid-cols-12 gap-8 border-t border-gray-700 pt-8 mt-8">
-                        <div class="md:col-span-4 border-r border-gray-700 pr-4">
-                            <h3 class="text-xl font-bold text-white mb-2">{{ t.hist_label }}</h3>
-                            <div class="h-1 w-12 bg-white"></div>
-                        </div>
-                        <div class="md:col-span-8 text-gray-300 text-lg leading-relaxed font-light">
-                            <p class="mb-4">{{ t.hist_content_1 }}</p>
-                            <p>{{ t.hist_content_2 }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="w-full max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-6 pb-20">
-                    <div @click="enterSection('classics')" class="glass-card p-10 cursor-pointer flex flex-col justify-between h-80 group">
-                        <div class="text-5xl mb-4 opacity-30 font-mono">01</div>
-                        <div><h2 class="text-3xl font-bold text-white mb-2">{{ t.nav_classics }}</h2><p class="text-sm text-gray-400 font-bold tracking-widest uppercase">{{ t.sub_classics }}</p></div>
-                    </div>
-                    <div @click="enterSection('folk')" class="glass-card p-10 cursor-pointer flex flex-col justify-between h-80 group">
-                        <div class="text-5xl mb-4 opacity-30 font-mono">02</div>
-                        <div><h2 class="text-3xl font-bold text-white mb-2">{{ t.nav_folk }}</h2><p class="text-sm text-gray-400 font-bold tracking-widest uppercase">{{ t.sub_folk }}</p></div>
-                    </div>
-                    <div class="glass-card p-10 opacity-50 flex flex-col justify-between h-80 relative border-dashed cursor-not-allowed">
-                        <div class="absolute top-6 right-6 border border-white/30 px-2 py-1 text-xs font-bold text-yellow-400">MAINTENANCE</div>
-                        <div class="text-5xl mb-4 opacity-20 font-mono">03</div>
-                        <div><h2 class="text-3xl font-bold text-gray-400 mb-2">{{ t.nav_ai }}</h2><p class="text-sm text-gray-500 font-bold tracking-widest uppercase">{{ t.sub_ai }}</p></div>
-                    </div>
-                </div>
-            </div>
-
-            <div v-else-if="viewState === 'classics'" key="classics" class="archive-bg pt-32 px-6 pb-20">
-                <div class="max-w-6xl mx-auto">
-                    <div class="flex justify-between items-end mb-12 border-b-4 border-black pb-6">
-                        <div><h1 class="text-6xl font-black mb-2">{{ t.nav_classics }}</h1><p class="text-gray-500 font-bold uppercase tracking-widest">{{ t.desc_classics }}</p></div>
-                        <button @click="showUpload = true" class="bg-black text-white px-8 py-4 font-bold hover:bg-gray-800 transition uppercase tracking-wider">+ {{ t.btn_upload }}</button>
-                    </div>
-                    <div v-if="loading" class="text-center py-20 text-gray-400 italic">Connecting to Database...</div>
-                    <table v-else class="heavy-table">
-                        <thead><tr><th class="w-1/2">{{ t.col_title }}</th><th class="w-1/4">{{ t.col_info }}</th><th class="w-1/4 text-right">{{ t.col_action }}</th></tr></thead>
-                        <tbody>
-                            <tr v-for="item in classicsList" :key="item.id" class="hover:bg-gray-50 transition">
-                                <td class="font-bold text-lg">{{ item.title }}</td>
-                                <td><div class="text-sm text-gray-600">{{ item.artist }}</div><span class="bg-black text-white px-2 py-0.5 text-xs">PDF</span></td>
-                                <td class="text-right"><a :href="item.file_url" target="_blank" class="border-2 border-black px-4 py-1 font-bold text-xs hover:bg-black hover:text-white transition uppercase">{{ t.btn_view }}</a></td>
-                            </tr>
-                            <tr v-if="classicsList.length === 0"><td colspan="3" class="text-center py-24 text-gray-400 italic">{{ t.empty_list }}</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div v-else-if="viewState === 'folk'" key="folk" class="archive-bg pt-32 px-6 pb-20">
-                <div class="max-w-6xl mx-auto">
-                    <div class="flex justify-between items-end mb-12 border-b-4 border-black pb-6">
-                        <div><h1 class="text-6xl font-black mb-2">{{ t.nav_folk }}</h1><p class="text-gray-500 font-bold uppercase tracking-widest">{{ t.desc_folk }}</p></div>
-                        <button @click="showUpload = true" class="bg-black text-white px-8 py-4 font-bold hover:bg-gray-800 transition uppercase tracking-wider">+ {{ t.btn_upload }}</button>
-                    </div>
-                    <div v-if="loading" class="text-center py-20 text-gray-400 italic">Connecting to Database...</div>
-                    <table v-else class="heavy-table">
-                        <thead><tr><th class="w-1/2">{{ t.col_title }}</th><th class="w-1/4">{{ t.col_source }}</th><th class="w-1/4 text-right">{{ t.col_action }}</th></tr></thead>
-                        <tbody>
-                            <tr v-for="item in folkList" :key="item.id" class="hover:bg-gray-50 transition">
-                                <td class="font-bold text-lg">{{ item.title }}</td>
-                                <td><div class="text-sm text-gray-600">{{ item.artist }}</div><span class="bg-gray-200 text-black px-2 py-0.5 text-xs">RAW</span></td>
-                                <td class="text-right"><a :href="item.file_url" target="_blank" class="border-2 border-black px-4 py-1 font-bold text-xs hover:bg-black hover:text-white transition uppercase">{{ t.btn_view }}</a></td>
-                            </tr>
-                            <tr v-if="folkList.length === 0"><td colspan="3" class="text-center py-24 text-gray-400 italic">{{ t.empty_list }}</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </transition>
     </div>
 
     <div v-if="showUpload" class="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4">
@@ -225,7 +229,8 @@
             const viewState = ref('home');
             const lang = ref('zh');
             const showUpload = ref(false);
-            const isSwitchingLang = ref(false);
+            const isBlurActive = ref(false); // 控制毛玻璃层
+            const isTextHidden = ref(false); // 控制文字透明度
             const loading = ref(false);
             const classicsList = ref([]);
             const folkList = ref([]);
@@ -237,10 +242,34 @@
             const navClasses = computed(() => viewState.value === 'home' ? 'bg-transparent text-white pt-4' : 'bg-white text-black border-b border-black py-0');
 
             const goHome = () => viewState.value = 'home';
+            
+            // --- 影院级转场逻辑 ---
             const switchLang = () => {
-                if (isSwitchingLang.value) return;
-                isSwitchingLang.value = true;
-                setTimeout(() => { lang.value = lang.value === 'zh' ? 'en' : 'zh'; setTimeout(() => isSwitchingLang.value = false, 500); }, 300);
+                if (isBlurActive.value) return; // 防止连点
+
+                // 1. 开启毛玻璃遮罩 (Duration: 800ms)
+                isBlurActive.value = true;
+
+                // 2. 文字开始淡出 (延迟 200ms 后开始，Duration: 600ms)
+                setTimeout(() => {
+                    isTextHidden.value = true;
+                }, 200);
+
+                // 3. 在毛玻璃最重、文字全透明时切换语言 (800ms时刻)
+                setTimeout(() => {
+                    lang.value = lang.value === 'zh' ? 'en' : 'zh';
+                    
+                    // 4. 文字开始淡入 (稍微错开一点时间)
+                    setTimeout(() => {
+                        isTextHidden.value = false;
+                    }, 100);
+
+                    // 5. 移除毛玻璃 (延迟一点，让文字先出来一部分)
+                    setTimeout(() => {
+                        isBlurActive.value = false;
+                    }, 500);
+
+                }, 900); // 等待第一阶段完全结束
             };
 
             const enterSection = (sec) => { viewState.value = sec; fetchData(sec); };
@@ -283,7 +312,12 @@
                 } finally { isUploading.value = false; }
             };
 
-            return { viewState, lang, t, showUpload, isSwitchingLang, navClasses, goHome, switchLang, enterSection, classicsList, folkList, loading, uploadForm, isUploading, uploadStatus, handleFileSelect, submitUpload };
+            return { 
+                viewState, lang, t, showUpload, 
+                isBlurActive, isTextHidden, // 新增的状态
+                navClasses, goHome, switchLang, enterSection, 
+                classicsList, folkList, loading, uploadForm, isUploading, uploadStatus, handleFileSelect, submitUpload 
+            };
         }
     }).mount('#app');
 </script>
