@@ -10,15 +10,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;600;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 1. 全局定义 --- */
+      
         :root {
-            /* 首页深邃主题 */
+          
             --deep-space: #020c1b;
             --ocean-blue: #0a192f;
             --starlight: #e6f1ff;
             --glass-white: rgba(255, 255, 255, 0.08);
             
-            /* 内页档案主题 */
+           
             --paper-white: #ffffff;
             --ink-black: #000000;
             --border-thick: 3px solid #000;
@@ -31,10 +31,10 @@
             background-color: var(--deep-space);
         }
 
-        /* 防止闪烁 */
+       
         [v-cloak] { display: none; }
 
-        /* --- 2. 影院级非线性转场 --- */
+       
         .page-enter-active,
         .page-leave-active {
             transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
@@ -49,7 +49,7 @@
 
         .transition-wrapper { position: relative; min-height: 100vh; width: 100%; overflow: hidden; }
 
-        /* --- 3. 首页视觉 --- */
+        
         .home-bg {
             background: radial-gradient(circle at 50% 0%, #112240 0%, #020c1b 100%);
             color: var(--starlight);
@@ -67,13 +67,13 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
-        /* --- 4. 内页视觉 --- */
+       
         .archive-bg { background-color: var(--paper-white); color: var(--ink-black); min-height: 100vh; }
         .heavy-table { width: 100%; border-collapse: collapse; border: var(--border-thick); }
         .heavy-table th { background: #000; color: #fff; padding: 18px; text-transform: uppercase; letter-spacing: 1px; font-weight: 900; }
         .heavy-table td { border-bottom: 1px solid #000; padding: 18px; font-weight: 600; }
 
-        /* --- 5. 语言切换特效 --- */
+        
         .blur-curtain {
             position: fixed; inset: 0; background: rgba(2, 12, 27, 0.8);
             backdrop-filter: blur(0px); pointer-events: none; z-index: 9999;
@@ -299,12 +299,12 @@
     const { createApp, ref, computed } = Vue;
     const { createClient } = supabase;
 
-    // --- 1. Supabase 集成 (已填入您提供的密钥) ---
+    
     const supabaseUrl = 'https://culzdcfaqvzytzpbisuc.supabase.co'
-    // 这里的 Key 是您提供的 publishable key
+    
     const supabaseKey = 'sb_publishable_5DfMV0no-9lfYznNhl9AFA_734SnaV6'
     
-    // 初始化客户端
+    
     const db = createClient(supabaseUrl, supabaseKey)
 
     const translations = {
@@ -365,7 +365,7 @@
             const showUpload = ref(false);
             const isSwitchingLang = ref(false);
 
-            // 数据相关
+           
             const loading = ref(false);
             const classicsList = ref([]);
             const folkList = ref([]);
@@ -392,19 +392,20 @@
                 }, 400);
             };
 
-            // 进入子页面逻辑
+       
             const enterSection = (sec) => {
                 viewState.value = sec;
-                fetchData(sec); // 拉取云端数据
+                fetchData(sec); 
             };
 
-            // --- 数据获取 ---
+            
             const fetchData = async (category) => {
                 loading.value = true;
                 const { data, error } = await db
                     .from('scores')
                     .select('*')
                     .eq('category', category)
+                    .eq('status', 'approved')
                     .order('created_at', { ascending: false });
 
                 if (data) {
@@ -414,7 +415,7 @@
                 loading.value = false;
             };
 
-            // --- 上传逻辑 ---
+            
             const handleFileSelect = (e) => {
                 uploadForm.value.file = e.target.files[0];
             };
@@ -428,25 +429,25 @@
                 uploadStatus.value = "Uploading...";
 
                 const file = uploadForm.value.file;
-                // 生成唯一文件名，防止中文乱码
+               
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${Date.now()}.${fileExt}`;
                 const category = viewState.value;
 
                 try {
-                    // 1. 上传到 Storage
+                    
                     const { data: fileData, error: fileError } = await db.storage
                         .from('score_files')
                         .upload(fileName, file);
 
                     if (fileError) throw fileError;
 
-                    // 2. 获取链接
+                    
                     const { data: urlData } = db.storage
                         .from('score_files')
                         .getPublicUrl(fileName);
 
-                    // 3. 写入 Database
+                    
                     const { error: dbError } = await db
                         .from('scores')
                         .insert([{
